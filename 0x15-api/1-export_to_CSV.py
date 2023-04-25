@@ -1,24 +1,20 @@
 #!/usr/bin/python3
-# csv exported
+"""Returns to-do list information for a given employee ID."""
 import csv
-from requests import get
-from sys import argv
-
-
-def cvsWrite(user):
-    """writes to csv"""
-    data = get('https://jsonplaceholder.typicode.com/todos?userId={}'.format(
-        user)).json()
-    name = get('https://jsonplaceholder.typicode.com/users/{}'.format(
-        user)).json().get('username')
-    employ_data = open('{}.csv'.format(user), 'w')
-    cwrite = csv.writer(employ_data, quoting=csv.QUOTE_ALL)
-    for line in data:
-        lined = [line.get('userId'), name,
-                 line.get('completed'), line.get('title')]
-        cwrite.writerow(lined)
-    employ_data.close()
-
+import requests
+import sys
 
 if __name__ == "__main__":
-    cvsWrite(argv[1])
+    url = "https://jsonplaceholder.typicode.com/"
+    employers = requests.get(url + "users/{}".format(sys.argv[1])).json()
+    tasks = requests.get(url + "todos", params={"userId": sys.argv[1]}).json()
+    user_id = sys.argv[1]
+    username = employers.get("username")
+    completed = [task.get("title")
+                 for task in tasks if task.get("completed") is True]
+
+    with open('{}.csv'.format(sys.argv[1]), mode='w', newline="") as csv_file:
+        writer = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
+        [writer.writerow(
+            [user_id, username, t.get("completed"), t.get("title")])
+         for t in tasks]

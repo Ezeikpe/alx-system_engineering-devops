@@ -1,23 +1,21 @@
 #!/usr/bin/python3
-# csv exported
+"""Returns to-do list information for a given employee ID."""
 import json
-from requests import get
-from sys import argv
-
-
-def jsonWrite(user):
-    """writes to csv"""
-    data = get('https://jsonplaceholder.typicode.com/todos?userId={}'.format(
-        user)).json()
-    name = get('https://jsonplaceholder.typicode.com/users/{}'.format(
-        user)).json().get('username')
-    ordered = []
-    for line in data:
-        ordered.append({"task": line.get('title'), "completed":
-                        line.get('completed'), "username": name})
-    with open('{}.json'.format(user), 'w') as f:
-        json.dump({user: ordered}, f)
-
+import requests
+import sys
 
 if __name__ == "__main__":
-    jsonWrite(int(argv[1]))
+    url = "https://jsonplaceholder.typicode.com/"
+    employers = requests.get(url + "users/{}".format(sys.argv[1])).json()
+    tasks = requests.get(url + "todos", params={"userId": sys.argv[1]}).json()
+
+    completed_tasks = []
+    for task in tasks:
+        completed_tasks.append({"task": task.get("title"),
+                                "completed": task.get("completed"),
+                                "username": employers.get("username")})
+
+    data = {employers.get("id"): completed_tasks}
+
+    with open('{}.json'.format(sys.argv[1]), 'w') as json_file:
+        json.dump(data, json_file)
